@@ -119,11 +119,12 @@ class RealWorldDataset(Dataset):
                 #with open(os.path.join(demo_path, "timestamp.txt"), "r") as f:
                 #    calib_timestamp = f.readline().rstrip()
                 pk = f"{self.task_prefix}/{self.all_demos[i]}"
-                if self.path != "data/rise/pour_2": # use legacy calib mode
+                # if self.path != "data/rise/pour_2": # use legacy calib mode
+                if pk not in self.teleop_to_camcalib:
                     calib_filepath = self.teleop_to_calib[pk]
                 else:
                     calib_filepath = self.teleop_to_camcalib[pk]
-                calib_filepath = self.teleop_to_calib[pk]
+                # calib_filepath = self.teleop_to_calib[pk]
                 # get samples according to num_obs and num_action
                 obs_frame_ids_list = []
                 action_frame_ids_list = []
