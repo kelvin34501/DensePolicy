@@ -22,6 +22,8 @@ class DensePolicy(nn.Module):
         self.Tp = Tp
         self.Ta = Ta
         self.binary_expansion = binary_expansion
+        if self.binary_expansion:
+            print("BINARY EXPANSION")
 
         self.action_projection = nn.Linear(obs_feature_dim, action_dim)
         self.cross_attention = BertModel(config)

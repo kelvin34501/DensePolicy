@@ -130,6 +130,7 @@ def train(args_override):
         num_encoder_layers = args.num_encoder_layers,
         num_decoder_layers = args.num_decoder_layers,
         dropout = args.dropout,
+        binary_expansion = True,
     ).to(device)
     if RANK == 0:
         n_parameters = sum(p.numel() for p in policy.parameters() if p.requires_grad)

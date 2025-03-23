@@ -22,14 +22,16 @@ class DSP(nn.Module):
         num_decoder_layers = 1, 
         dim_feedforward = 2048, 
         dropout = 0.1,
+        binary_expansion=False,
     ):
         super().__init__()
         self.sparse_encoder = Sparse3DEncoder(input_dim, obs_feature_dim)
         self.transformer = Transformer(hidden_dim, nheads, num_encoder_layers, num_decoder_layers, dim_feedforward, dropout)
-        self.action_decoder = DensePolicy(action_dim, 
-                                                  Tp, 
-                                                  Ta, 
-                                                  obs_feature_dim, 
+        self.action_decoder = DensePolicy(action_dim,
+                                                  Tp,
+                                                  Ta,
+                                                  obs_feature_dim,
+                                                  binary_expansion,
                                                 )
         self.readout_embed = nn.Embedding(1, hidden_dim)
 
