@@ -26,6 +26,7 @@ Please follow the instructions to install the conda environments and the depende
     python setup.py install --blas_include_dirs=${CONDA_PREFIX}/include --blas=openblas
     cd ../..
     ```
+    For CUDA 12.1, the installation of MinkowskiEngine may be incompatible. You may need to add some headers in MinkowskiEngine. Refer to [issue#543](https://github.com/NVIDIA/MinkowskiEngine/issues/543).
 
 4. Install [Pytorch3D](https://github.com/facebookresearch/pytorch3d) manually.
     ```bash
