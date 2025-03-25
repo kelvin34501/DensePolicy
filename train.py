@@ -14,9 +14,10 @@ from easydict import EasyDict as edict
 from diffusers.optimization import get_cosine_schedule_with_warmup
 
 from policy import DSP
-from dataset.realworld import RealWorldDataset, collate_fn
-from dataset.risereal import RealWorldDataset as RISERealworldDataset
-from dataset.risereal import collate_fn as risereal_collate_fn
+# from dataset.realworld import RealWorldDataset, collate_fn
+from dataset.realworld_aloha import RealWorldDatasetALOHA, collate_fn
+# from dataset.risereal import RealWorldDataset as RISERealworldDataset
+# from dataset.risereal import collate_fn as risereal_collate_fn
 from utils.training import set_seed, plot_history, sync_loss
 from termcolor import cprint
 
@@ -67,55 +68,30 @@ def train(args_override):
 
     # dataset & dataloader
     if RANK == 0: print("Loading dataset ...")
-    if "rise_real" in args.data_path:
-        if RANK == 0: cprint(f"{args.data_path} is a RISE-Real dataset", 'yellow')
-        dataset = RISERealworldDataset(
-            path = args.data_path,
-            split = 'train',
-            num_obs = 1,
-            num_action = args.Tp,
-            voxel_size = args.voxel_size,
-            aug = args.aug,
-            aug_jitter = args.aug_jitter, 
-            with_cloud = False,
-        )
-        sampler = torch.utils.data.distributed.DistributedSampler(
-            dataset, 
-            num_replicas = WORLD_SIZE, 
-            rank = RANK, 
-            shuffle = True
-        )
-        dataloader = torch.utils.data.DataLoader(
-            dataset,
-            batch_size = args.batch_size // WORLD_SIZE,
-            num_workers = args.num_workers,
-            collate_fn = risereal_collate_fn,
-            sampler = sampler
-        )
-    else:
-        dataset = RealWorldDataset(
-            path = args.data_path,
-            split = 'train',
-            num_obs = 1,
-            num_action = args.Tp,
-            voxel_size = args.voxel_size,
-            aug = args.aug,
-            aug_jitter = args.aug_jitter, 
-            with_cloud = False,
-        )
-        sampler = torch.utils.data.distributed.DistributedSampler(
-            dataset, 
-            num_replicas = WORLD_SIZE, 
-            rank = RANK, 
-            shuffle = True
-        )
-        dataloader = torch.utils.data.DataLoader(
-            dataset,
-            batch_size = args.batch_size // WORLD_SIZE,
-            num_workers = args.num_workers,
-            collate_fn = collate_fn,
-            sampler = sampler
-        )
+    dataset = RealWorldDatasetALOHA(
+        path = args.data_path,
+        split = 'train',
+        num_obs = 1,
+        num_action = args.Tp,
+        voxel_size = args.voxel_size,
+        aug = args.aug,
+        aug_jitter = args.aug_jitter, 
+        with_cloud = False,
+        norm_stat_filepath=args.norm_stat_filepath,
+    )
+    sampler = torch.utils.data.distributed.DistributedSampler(
+        dataset, 
+        num_replicas = WORLD_SIZE, 
+        rank = RANK, 
+        shuffle = True
+    )
+    dataloader = torch.utils.data.DataLoader(
+        dataset,
+        batch_size = args.batch_size // WORLD_SIZE,
+        num_workers = args.num_workers,
+        collate_fn = collate_fn,
+        sampler = sampler
+    )
 
     # policy
     if RANK == 0: print("Loading policy ...")
@@ -124,7 +100,7 @@ def train(args_override):
         Ta = args.Ta,
         input_dim = 6,
         obs_feature_dim = args.obs_feature_dim,
-        action_dim = 10,
+        action_dim = 14,
         hidden_dim = args.hidden_dim,
         nheads = args.nheads,
         num_encoder_layers = args.num_encoder_layers,
@@ -245,5 +221,6 @@ if __name__ == '__main__':
     parser.add_argument('--save_epochs', action = 'store', type = int, help = 'saving epochs', required = False, default = 50)
     parser.add_argument('--num_workers', action = 'store', type = int, help = 'number of workers', required = False, default = 24)
     parser.add_argument('--seed', action = 'store', type = int, help = 'seed', required = False, default = 233)
+    parser.add_argument('--norm_stat_filepath', action = 'store', type = str, help = 'norm stat file path', required = False, default = None)
 
     train(vars(parser.parse_args()))
